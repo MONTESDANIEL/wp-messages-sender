@@ -1,0 +1,19 @@
+{
+    "properties": [
+        {
+            "name": "evolution.api.apikey",
+            "type": "java.lang.String",
+            "description": "A description for 'evolution.api.apikey'"
+        },
+        {
+            "name": "frontend.url",
+            "type": "java.lang.String",
+            "description": "A description for 'frontend.url'"
+        },
+        {
+            "name": "evolution.api.baseurl",
+            "type": "java.lang.String",
+            "description": "A description for 'evolution.api.baseurl'"
+        }
+    ]
+}

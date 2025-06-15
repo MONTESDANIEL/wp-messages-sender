@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-WpMessagesSenderApplication<wp-messages-sender>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.whatsapp.wp_messages_sender.WpMessagesSenderApplication",
+            "projectName": "wp-messages-sender",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
