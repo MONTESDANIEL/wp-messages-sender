@@ -7,6 +7,7 @@ import com.whatsapp.wp_messages_sender.services.MessageService;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,24 +34,32 @@ public class MessageController {
     }
 
     @PostMapping("/send-media-masive")
-    public Mono<ResponseEntity<String>> handleRequest(@RequestBody List<Message> messages) {
+    public Mono<ResponseEntity<Map<String, List<Map<String, Object>>>>> handleRequest(
+            @RequestBody List<Message> messages) {
         return Flux.fromIterable(messages)
-                .flatMap(messageService::sendMediaToExternalApi)
+                .flatMap(message -> messageService.sendMediaToExternalApi(message)
+                        .map(response -> Map.of("status", "success", "message", message, "response", response))
+                        .onErrorResume(error -> Mono
+                                .just(Map.of("status", "error", "message", message, "error", error.getMessage()))))
                 .collectList()
-                .map(responses -> ResponseEntity.ok("Mensajes enviados correctamente: " + responses))
+                .map(results -> ResponseEntity.ok(Map.of(
+                        "success", results.stream()
+                                .filter(r -> "success".equals(r.get("status")))
+                                .toList(),
+                        "errors", results.stream()
+                                .filter(r -> "error".equals(r.get("status")))
+                                .toList())))
                 .onErrorResume(error -> Mono.just(ResponseEntity.status(500)
-                        .body("Error al enviar los mensajes: " + error.getMessage())));
+                        .body(Map.of(
+                                "success", List.of(),
+                                "errors", List.of(Map.of(
+                                        "error", "Error procesando los mensajes",
+                                        "details", error.getMessage()))))));
     }
 
     @GetMapping("/fetch-instances")
     public Mono<List<Instance>> fetchAllInstances() {
         Mono<List<Instance>> instancesMono = messageService.fetchAllInstances();
-        System.out.println("Fetching all instances...");
-        instancesMono.subscribe(instances -> {
-            System.out.println("Fetched instances: " + instances);
-        }, error -> {
-            System.err.println("Error fetching instances: " + error.getMessage());
-        });
         return instancesMono;
     }
 }

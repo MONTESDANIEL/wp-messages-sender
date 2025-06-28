@@ -34,14 +34,15 @@ public class MessageService {
                 .header("apikey", apiKey)
                 .bodyValue(buildJsonBody(message))
                 .retrieve()
-                .bodyToMono(String.class);
+                .bodyToMono(String.class)
+                .doOnError(error -> System.err
+                        .println("Error al enviar mensaje: " + message + ". Error: " + error.getMessage()));
     }
 
     private Map<String, Object> buildJsonBody(Message message) {
         return Map.of(
                 "number", message.getNumberRecipient(),
                 "mediatype", message.getMediatype(),
-                "mimetype", message.getMimetype(),
                 "caption", message.getCaption(),
                 "media", message.getMedia());
     }
