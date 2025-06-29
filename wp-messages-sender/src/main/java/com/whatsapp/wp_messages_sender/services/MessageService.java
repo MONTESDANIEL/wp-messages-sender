@@ -9,7 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.whatsapp.wp_messages_sender.entities.Instance;
-import com.whatsapp.wp_messages_sender.entities.Message;
+import com.whatsapp.wp_messages_sender.entities.MediaMessage;
+import com.whatsapp.wp_messages_sender.entities.TextMessage;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -26,20 +27,40 @@ public class MessageService {
     @Value("${evolution.api.baseurl}")
     private String baseUrl;
 
-    public Mono<String> sendMediaToExternalApi(Message message) {
+    public Mono<String> sendMediaToExternalApi(MediaMessage message) {
         WebClient webClient = webClientBuilder.baseUrl(baseUrl).build();
         return webClient.post()
                 .uri("/message/sendMedia/{instance}", message.getInstance())
                 .header(HttpHeaders.CONTENT_TYPE, "application/json")
                 .header("apikey", apiKey)
-                .bodyValue(buildJsonBody(message))
+                .bodyValue(buildMediaJsonBody(message))
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnError(error -> System.err
                         .println("Error al enviar mensaje: " + message + ". Error: " + error.getMessage()));
     }
 
-    private Map<String, Object> buildJsonBody(Message message) {
+    public Mono<String> sendTextToExternalApi(TextMessage message) {
+        System.out.println("Enviando mensaje de texto: " + buildTextJsonBody(message));
+        WebClient webClient = webClientBuilder.baseUrl(baseUrl).build();
+        return webClient.post()
+                .uri("/message/sendText/{instance}", message.getInstance())
+                .header(HttpHeaders.CONTENT_TYPE, "application/json")
+                .header("apikey", apiKey)
+                .bodyValue(buildTextJsonBody(message))
+                .retrieve()
+                .bodyToMono(String.class)
+                .doOnError(error -> System.err
+                        .println("Error al enviar mensaje: " + message + ". Error: " + error.getMessage()));
+    }
+
+    private Map<String, Object> buildTextJsonBody(TextMessage message) {
+        return Map.of(
+                "number", message.getNumberRecipient(),
+                "text", message.getCaption());
+    }
+
+    private Map<String, Object> buildMediaJsonBody(MediaMessage message) {
         return Map.of(
                 "number", message.getNumberRecipient(),
                 "mediatype", message.getMediatype(),
