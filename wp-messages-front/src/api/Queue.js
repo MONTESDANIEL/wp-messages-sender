@@ -1,0 +1,34 @@
+import axios from "axios";
+
+const baseUrl = "http://192.168.1.8:8081/messages-queue";
+
+export const addMessagesToQueue = async ({ messages }) => {
+  try {
+    const response = await axios.post(`${baseUrl}/addMessages`, messages, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getTextQueueForInstance = async (instance) => {
+  try {
+    const response = await axios.get(`${baseUrl}/queue/text/${instance}`, {});
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getMediaQueueForInstance = async (instance) => {
+  try {
+    const response = await axios.get(`${baseUrl}/queue/media/${instance}`, {});
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

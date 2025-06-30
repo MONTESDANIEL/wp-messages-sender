@@ -5,6 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.whatsapp.wp_messages_queue.entities.MediaMessage;
 import com.whatsapp.wp_messages_queue.entities.TextMessage;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
@@ -39,6 +43,40 @@ public class QueueService {
         try (Jedis jedis = jedisPool.getResource()) {
             String queueKey = MEDIA_QUEUE_PREFIX + message.getInstance();
             jedis.rpush(queueKey, objectMapper.writeValueAsString(message));
+        }
+    }
+
+    public List<TextMessage> getMessagesForText(String instance) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            String key = "queue:text:" + instance;
+            if (jedis.exists(key)) {
+                List<String> messages = jedis.lrange(key, 0, -1);
+                return messages.stream()
+                        .map(message -> deserialize(message, TextMessage.class))
+                        .collect(Collectors.toList());
+            }
+            return Collections.emptyList();
+        }
+    }
+
+    public List<MediaMessage> getMessagesForMedia(String instance) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            String key = "queue:media:" + instance;
+            if (jedis.exists(key)) {
+                List<String> messages = jedis.lrange(key, 0, -1);
+                return messages.stream()
+                        .map(message -> deserialize(message, MediaMessage.class))
+                        .collect(Collectors.toList());
+            }
+            return Collections.emptyList();
+        }
+    }
+
+    private <T> T deserialize(String message, Class<T> clazz) {
+        try {
+            return objectMapper.readValue(message, clazz);
+        } catch (Exception e) {
+            throw new RuntimeException("Error deserializing message: " + e.getMessage(), e);
         }
     }
 }

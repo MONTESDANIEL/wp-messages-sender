@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { sendMassiveMediaMessages, fetchInstances } from '../api/EvolutionApi.js';
+import { addMessagesToQueue } from '../api/Queue.js';
 import LoadingScreen from '../components/LoadingScreen.js';
 import { Workbook } from 'exceljs';
 import AlertWidget from '../components/AlertWidget.js';
@@ -39,8 +39,8 @@ const BulkMessages: React.FC = () => {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const instances = await fetchInstances();
-                setInstances(instances);
+                // const instances = await fetchInstances();
+                // setInstances(instances);
             } catch (error) {
                 console.error('Error obteniendo las instancias:', error);
             } finally {
@@ -94,17 +94,27 @@ const BulkMessages: React.FC = () => {
         event.preventDefault();
 
         try {
-            const messages = excelData.map(({ number, name }) => ({
-                numberRecipient: number,
-                media: formData.imagen,
-                caption: formData.mensaje.replace("{name}", name),
-                mediatype: formData.mediaType,
-                instance: formData.instance,
-            }));
+            const messages = excelData.map(({ number, name }) => {
+                if (formData.mediaType === 'text') {
+                    return {
+                        instance: formData.instance,
+                        number: number,
+                        text: formData.mensaje.replace("{name}", name),
+                    };
+                } else {
+                    return {
+                        instance: formData.instance,
+                        number: number,
+                        media: formData.imagen,
+                        caption: formData.mensaje.replace("{name}", name),
+                        mediatype: formData.mediaType,
+                    };
+                }
+            });
 
             console.log(messages)
 
-            await sendMassiveMediaMessages({ messages });
+            await addMessagesToQueue({ messages });
             window.location.reload();
             setStatus('success');
 
@@ -165,11 +175,12 @@ const BulkMessages: React.FC = () => {
                                 onChange={handleChange}
                             >
                                 <option value="">Seleccione una instancia</option>
-                                {instances.map((instance) => (
+                                <option value="WP_DANIEL">WP_DANIEL</option>
+                                {/* {instances.map((instance) => (
                                     <option key={instance.id} value={instance.name}>
                                         {instance.name}
                                     </option>
-                                ))}
+                                ))} */}
                             </select>
                             <svg
                                 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-600 pointer-events-none"

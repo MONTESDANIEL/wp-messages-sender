@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { sendMassiveMediaMessages, fetchInstances } from '../api/EvolutionApi.js';
 import LoadingScreen from '../components/LoadingScreen.js';
 import { motion } from 'framer-motion';
 
@@ -28,8 +27,8 @@ const Status: React.FC = () => {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const fetchedInstances = await fetchInstances();
-                setInstances(fetchedInstances);
+                // const fetchedInstances = await fetchInstances();
+                // setInstances(fetchedInstances);
             } catch (error) {
                 console.error('Error obteniendo las instancias:', error);
             } finally {
@@ -68,7 +67,7 @@ const Status: React.FC = () => {
         setStatus('submitting');
 
         try {
-            await sendMassiveMediaMessages();
+            // await sendMassiveMediaMessages();
             setStatus('success');
         } catch (error) {
             console.error('Error enviando mensajes:', error);

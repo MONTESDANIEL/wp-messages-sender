@@ -1,4 +1,4 @@
-package com.whatsapp.wp_messages_sender.config;
+package com.whatsapp.wp_messages_queue.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
