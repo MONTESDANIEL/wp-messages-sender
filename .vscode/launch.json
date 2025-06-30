@@ -9,6 +9,16 @@
             "projectName": "wp-messages-sender",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-WpMessagesQueueApplication<wp-messages-queue>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.whatsapp.wp_messages_queue.WpMessagesQueueApplication",
+            "projectName": "wp-messages-queue",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }
