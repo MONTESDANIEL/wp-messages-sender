@@ -10,7 +10,7 @@ export const NavBar: React.FC = () => {
     const menuLinks = [
         { name: "Dashboard", href: "/dashboard" },
         { name: "Bulk Messaging", href: "/bulkMessaging" },
-        { name: "Status Publisher", href: "/statusPublisher" },
+        // { name: "Status Publisher", href: "/statusPublisher" },
         { name: "Queue", href: "/queue" },
         { name: "Instances", href: "/instances" },
     ];

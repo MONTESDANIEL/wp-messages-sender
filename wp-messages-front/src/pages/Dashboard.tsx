@@ -53,13 +53,13 @@ const instancias = [
 const Dashboard: React.FC = () => {
 
     const barData = {
-        labels: ["Enviados", "No Enviados", "Pendientes", "Contestados"],
+        labels: ["Enviados", "No Enviados", "Pendientes"],
         datasets: [
             {
                 label: "Estado de Mensajes",
-                data: [580, 320, 45, 10],
-                backgroundColor: ["#22c55e", "#ef4444", "#facc15", "#2b7fff"],
-                borderColor: ["#16a34a", "#dc2626", "#fbbf24", "#3361a9"],
+                data: [580, 320, 45],
+                backgroundColor: ["#22c55e", "#ef4444", "#facc15"],
+                borderColor: ["#16a34a", "#dc2626", "#fbbf24"],
                 borderWidth: 2,
             },
         ],
@@ -153,12 +153,11 @@ const Dashboard: React.FC = () => {
             </motion.div>
 
             {/* Métricas rápidas */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 w-full mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full mb-8">
                 {[
                     { title: 'Enviados', value: 580, color: 'text-green-600', icon: <MessageCircle size={30} /> },
                     { title: 'No Enviados', value: 320, color: 'text-red-600', icon: <MessageCircleX size={30} /> },
-                    { title: 'Pendientes', value: 45, color: 'text-yellow-500', icon: <MessageCircleWarning size={30} /> },
-                    { title: 'Contestados', value: 10, color: 'text-blue-500', icon: <MessageCircleReply size={30} /> },
+                    { title: 'Pendientes', value: 45, color: 'text-yellow-500', icon: <MessageCircleWarning size={30} /> }
                 ].map((stat) => (
                     <div
                         key={stat.title}
