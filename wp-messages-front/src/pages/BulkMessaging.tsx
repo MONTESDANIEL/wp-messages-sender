@@ -114,7 +114,7 @@ const BulkMessages: React.FC = () => {
 
             console.log(messages)
 
-            await addMessagesToQueue({ messages });
+            await addMessagesToQueue(messages, formData.instance);
             window.location.reload();
             setStatus('success');
 

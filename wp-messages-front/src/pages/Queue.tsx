@@ -117,7 +117,7 @@ const Queue: React.FC = () => {
                                 transition={{ duration: 0.3, ease: "easeInOut" }}
                                 className="overflow-hidden"
                             >
-                                <h3 className="font-semibold text-xl m-2 dark:text-white">Text Queue</h3>
+                                <h3 className="font-semibold text-xl my-2 dark:text-white">Text Queue</h3>
                                 <div className="rounded-lg overflow-hidden mb-8">
                                     {instance.textQueue.length > 0 ? (
                                         <div
@@ -149,7 +149,7 @@ const Queue: React.FC = () => {
                                 </div>
 
 
-                                <h3 className="font-semibold text-xl m-2 dark:text-white">Media Queue</h3>
+                                <h3 className="font-semibold text-xl my-2 dark:text-white">Media Queue</h3>
                                 <div className="rounded-lg overflow-hidden">
                                     {instance.mediaQueue.length > 0 ? (
                                         <div

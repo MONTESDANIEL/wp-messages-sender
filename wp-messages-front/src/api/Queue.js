@@ -2,13 +2,17 @@ import axios from "axios";
 
 const baseUrl = "http://192.168.1.8:8081/messages-queue";
 
-export const addMessagesToQueue = async ({ messages }) => {
+export const addMessagesToQueue = async (messages, instance) => {
   try {
-    const response = await axios.post(`${baseUrl}/addMessages`, messages, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await axios.post(
+      `${baseUrl}/addMessages/${instance}`,
+      messages,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     throw error;

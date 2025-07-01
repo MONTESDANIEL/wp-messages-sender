@@ -1,12 +1,43 @@
 package com.whatsapp.wp_messages_queue.entities;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Data
+@NoArgsConstructor
+@Entity
+@Table(name = "MediaMessage")
 public class MediaMessage {
-    private String number; // Phone number of the recipient
-    private String instance; // Phone number of the sender
-    private String mediatype; // Type of media (e.g., image, video, document)
-    private String caption; // Caption for the media
-    private String media; // Base64 encoded media content or URL
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Clave primaria autogenerada
+    private Long id;
+
+    @Column(name = "queue_id", nullable = false)
+    private Long queueId;
+
+    @Column(nullable = false)
+    private String number;
+
+    @Column(nullable = false)
+    private String mediatype;
+
+    @Column(nullable = false)
+    private String media;
+
+    private String caption;
+
+    @Column(nullable = false)
+    private String status;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }
