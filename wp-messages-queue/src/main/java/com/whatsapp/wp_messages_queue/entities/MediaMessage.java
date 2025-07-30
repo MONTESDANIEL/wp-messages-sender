@@ -16,11 +16,11 @@ public class MediaMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Clave primaria autogenerada
     private Long id;
 
-    @Column(name = "queue_id", nullable = false)
-    private Long queueId;
-
     @Column(nullable = false)
     private String number;
+
+    @Column(nullable = false)
+    private String instance;
 
     @Column(nullable = false)
     private String mediatype;

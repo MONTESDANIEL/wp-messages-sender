@@ -137,7 +137,7 @@ const Dashboard: React.FC = () => {
         }
     };
 
-    const cardChartClass = "col-span-3 lg:col-span-1 bg-white dark:bg-neutral-800 rounded shadow p-4";
+    const cardChartClass = "col-span-3 lg:col-span-1 bg-neutral-100 dark:bg-neutral-800 rounded shadow p-4";
 
     return (
         <section className="flex flex-col items-center bg-white dark:bg-neutral-950 mt-16 p-6">
@@ -161,7 +161,7 @@ const Dashboard: React.FC = () => {
                 ].map((stat) => (
                     <div
                         key={stat.title}
-                        className="flex bg-white dark:bg-neutral-800 rounded shadow p-5 hover:scale-105 transition-transform"
+                        className="flex bg-neutral-100 dark:bg-neutral-800 rounded shadow p-5 hover:scale-105 transition-transform"
                     >
                         <div
                             className="bg-neutral-200 dark:bg-neutral-700 flex justify-center rounded-xl items-center w-18 aspect-square dark:text-white"

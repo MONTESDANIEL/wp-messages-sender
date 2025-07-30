@@ -26,7 +26,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, size })
 
                     {/* Modal Content */}
                     <motion.div
-                        className={`bg-white dark:bg-neutral-900 rounded-xl shadow-xl w-full relative m-5 ${size ? "max-w-" + size : "max-w-xl"}`}
+                        className={`bg-white dark:bg-neutral-900 rounded-xl shadow-xl w-full relative m-5 ${size ? "max-w-" + size : "max-w-lg"}`}
                         initial={{ opacity: 0, y: -50 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 50 }}

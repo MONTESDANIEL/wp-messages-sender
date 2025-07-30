@@ -16,11 +16,8 @@ public class TextMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Clave primaria autogenerada
     private Long id;
 
-    @Column(name = "queue_id", nullable = false)
-    private Long queueId;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(nullable = false)
+    private String instance;
 
     @Column(nullable = false)
     private String number;
@@ -30,6 +27,9 @@ public class TextMessage {
 
     @Column(nullable = false)
     private String text;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {

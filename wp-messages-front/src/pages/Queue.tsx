@@ -1,52 +1,67 @@
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowDown } from "lucide-react";
 import { getTextQueueForInstance, getMediaQueueForInstance } from "../api/Queue.js";
 import LoadingScreen from "../components/LoadingScreen.js";
+import QueueList from "../components/QueueList.js";
+import { motion } from "framer-motion";
+import { ListX } from "lucide-react";
+import { useStatusUpdates } from "../hooks/UseStatusUpdate.tsx";
 
 interface TextMessage {
-    number: string;
+    id: number;
     instance: string;
+    number: string;
+    status: "pending" | "sended" | "failed";
     text: string;
+    createdAt?: string;
 }
 
 interface MediaMessage {
+    id: number;
     number: string;
     instance: string;
     mediatype: "image" | "video";
-    caption?: string;
     media: string;
+    caption?: string;
+    status?: "pending" | "sended" | "failed";
+    createdAt?: string;
 }
-interface InstanceQueue {
-    instance: string;
+
+interface QueueInstance {
     textQueue: TextMessage[];
     mediaQueue: MediaMessage[];
-    isOpen: boolean;
+    searchText: string;
 }
 
 const Queue: React.FC = () => {
     const [loading, setLoading] = useState(true);
-    const [instances, setInstances] = useState<InstanceQueue[]>([]);
+    const [queues, setQueues] = useState<Record<string, QueueInstance>>({});
+    const [activeTab, setActiveTab] = useState<string>("");
+
+    const instanceNames = ["WP_DANIEL"];
 
     useEffect(() => {
         const fetchQueuesForInstances = async () => {
-            const instanceNames = ["WP_DANIEL"]; // Lista de instancias
             try {
-                const fetchedInstances = await Promise.all(
+                const fetched = await Promise.all(
                     instanceNames.map(async (instance) => {
                         const textQueue = await getTextQueueForInstance(instance);
                         const mediaQueue = await getMediaQueueForInstance(instance);
-                        return {
-                            instance,
-                            textQueue,
-                            mediaQueue,
-                            isOpen: false, // Estado inicial de cada instancia
-                        };
+                        return { instance, textQueue, mediaQueue };
                     })
                 );
-                setInstances(fetchedInstances);
-            } catch (error) {
-                console.error("Error obteniendo las colas de las instancias:", error);
+
+                const result: Record<string, QueueInstance> = {};
+                fetched.forEach(({ instance, textQueue, mediaQueue }) => {
+                    result[instance] = {
+                        textQueue,
+                        mediaQueue,
+                        searchText: queues[instance]?.searchText ?? "",
+                    };
+                });
+
+                setQueues(result);
+            } catch (e) {
+                console.error("Error obteniendo colas:", e);
             } finally {
                 setLoading(false);
             }
@@ -55,162 +70,164 @@ const Queue: React.FC = () => {
         fetchQueuesForInstances();
     }, []);
 
-    const toggleInstance = (index: number) => {
-        setInstances((prevInstances) =>
-            prevInstances.map((instance, i) =>
-                i === index ? { ...instance, isOpen: !instance.isOpen } : instance
-            )
-        );
+    useStatusUpdates((update: TextMessage | MediaMessage) => {
+        const isText = "text" in update;
+        const { id, instance, status } = update;
+
+        if (!status) return; // Seguridad: MediaMessage sin status no se actualiza
+
+        setQueues((prev) => {
+            const current = prev[instance];
+            if (!current) return prev;
+
+            if (isText) {
+                // Only update textQueue, keeping type safety
+                const updatedTextQueue = current.textQueue.map((msg) =>
+                    msg.id === id ? { ...msg, status } : msg
+                );
+                return {
+                    ...prev,
+                    [instance]: {
+                        ...current,
+                        textQueue: updatedTextQueue,
+                    },
+                };
+            } else {
+                // Only update mediaQueue, keeping type safety
+                const updatedMediaQueue = current.mediaQueue.map((msg) =>
+                    msg.id === id ? { ...msg, status } : msg
+                );
+                return {
+                    ...prev,
+                    [instance]: {
+                        ...current,
+                        mediaQueue: updatedMediaQueue,
+                    },
+                };
+            }
+        });
+    });
+
+    const handleSearchChange = (instance: string, value: string) => {
+        setQueues((prev) => ({
+            ...prev,
+            [instance]: {
+                ...prev[instance],
+                searchText: value,
+            },
+        }));
     };
 
-    const containerVariants = {
-        hidden: { opacity: 0, height: 20 },
-        visible: { opacity: 1, height: "auto" },
+    const clearTextQueue = (instance: string) => {
+        setQueues((prev) => ({
+            ...prev,
+            [instance]: {
+                ...prev[instance],
+                textQueue: [],
+            },
+        }));
     };
 
-    if (loading) {
-        return <LoadingScreen />;
-    }
+    const clearMediaQueue = (instance: string) => {
+        setQueues((prev) => ({
+            ...prev,
+            [instance]: {
+                ...prev[instance],
+                mediaQueue: [],
+            },
+        }));
+    };
+
+    if (loading) return <LoadingScreen />;
 
     return (
-        <section className="flex flex-col items-center justify-center bg-white dark:bg-neutral-950 mt-16 p-6 min-h-[85vh]">
+        <section className="flex flex-col justify-center items-center bg-white dark:bg-neutral-950 mt-16 p-6 min-h-[85vh] w-full">
             <motion.div
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 30, scale: 0.95 }}
                 transition={{ duration: 0.7, type: "spring", bounce: 0.4 }}
-                className="m-4 text-center dark:text-white"
+                className="m-4 mb-6 text-center dark:text-white"
             >
                 <h1 className="text-4xl font-bold m-2">Queue</h1>
-                <p className="text-lg">Monitor and manage your message queue efficiently.</p>
+                <p className="text-lg text-neutral-600 dark:text-neutral-300">Visualiza y administra la cola de mensajes pendientes por enviar.</p>
             </motion.div>
 
-            {instances.map((instance, index) => (
-                <motion.div
-                    key={instance.instance}
-                    className="w-full bg-neutral-100 dark:bg-neutral-900 p-4 rounded-lg shadow-md my-2 max-w-3xl"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.1 }}
-                >
-                    <div
-                        onClick={() => toggleInstance(index)}
-                        className="font-bold cursor-pointer hover:text-green-500 flex justify-between items-center group dark:text-white p-4"
-                    >
-                        <h2 className="text-xl font-bold text-center flex-grow">
-                            {instance.instance}
-                        </h2>
-                        <span
-                            className={`ml-2 text-lg transform transition-transform duration-200 ${instance.isOpen ? "rotate-180" : ""
+            {/* Tabs */}
+            <div className="rounded-lg max-w-5xl mx-auto mb-4">
+                <nav className="flex justify-center space-x-4">
+                    {Object.keys(queues).map((instance) => (
+                        <button
+                            key={instance}
+                            className={`px-4 py-2 rounded-md font-semibold text-sm dark:text-white cursor-pointer ${activeTab === instance
+                                ? "bg-neutral-200 dark:bg-neutral-800"
+                                : "bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-300 dark:hover:bg-neutral-700"
                                 }`}
+                            onClick={() => setActiveTab(instance)}
                         >
-                            <ArrowDown />
-                        </span>
-                    </div>
-                    <AnimatePresence>
-                        {instance.isOpen && (
-                            <motion.div
-                                initial="hidden"
-                                animate="visible"
-                                exit="hidden"
-                                variants={containerVariants}
-                                transition={{ duration: 0.3, ease: "easeInOut" }}
-                                className="overflow-hidden"
+                            {instance}
+                        </button>
+                    ))}
+                </nav>
+            </div>
+
+            {/* Content */}
+            {activeTab && (
+                <div className="bg-neutral-100 dark:bg-neutral-900 rounded-lg p-4 w-full max-w-7xl">
+                    <div className="flex justify-between items-center gap-2 my-4">
+                        <input
+                            type="text"
+                            placeholder="Buscar"
+                            className="w-full p-2 rounded bg-neutral-200 dark:bg-neutral-800 dark:text-white "
+                            value={queues[activeTab].searchText}
+                            onChange={(e) => handleSearchChange(activeTab, e.target.value)}
+                        />
+                        <div className="flex justify-center items-center rounded bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-400 dark:hover:bg-neutral-700 p-2 cursor-pointer">
+                            <button
+                                onClick={() => clearMediaQueue(activeTab)}
+                                className="text-sm text-red-500 cursor-pointer"
                             >
-                                <h3 className="font-semibold text-xl my-2 dark:text-white">Text Queue</h3>
-                                <div className="rounded-lg overflow-hidden mb-8">
-                                    {instance.textQueue.length > 0 ? (
-                                        <div
-                                            style={{
-                                                maxHeight: "300px",
-                                                overflowY: "auto",
-                                            }}
-                                        >
-                                            {instance.textQueue.map((message, index) => (
-                                                <div
-                                                    key={index}
-                                                    className={`lg:flex justify-between p-4 ${index % 2 === 0
-                                                        ? "bg-neutral-200 dark:bg-neutral-800"
-                                                        : "bg-neutral-300 dark:bg-neutral-700"
-                                                        }`}
-                                                >
-                                                    <p className="text-neutral-700 dark:text-neutral-200 font-bold">
-                                                        {message.number.slice(2)}
-                                                    </p>
-                                                    <p className="text-neutral-500 dark:text-neutral-400">{message.text}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center justify-center p-4 bg-neutral-100 dark:bg-neutral-900">
-                                            <p className="text-neutral-500 dark:text-neutral-400">No hay mensajes de texto en cola.</p>
-                                        </div>
-                                    )}
-                                </div>
+                                <ListX />
+                            </button>
+                        </div>
+                    </div>
 
-
-                                <h3 className="font-semibold text-xl my-2 dark:text-white">Media Queue</h3>
-                                <div className="rounded-lg overflow-hidden">
-                                    {instance.mediaQueue.length > 0 ? (
-                                        <div
-                                            style={{
-                                                maxHeight: "300px",
-                                                overflowY: "auto",
-                                            }}
-                                        >
-                                            {instance.mediaQueue.map((message, index) => (
-                                                <div
-                                                    key={index}
-                                                    className={`flex justify-between p-4 ${index % 2 === 0
-                                                        ? "bg-neutral-200 dark:bg-neutral-800"
-                                                        : "bg-neutral-300 dark:bg-neutral-700"
-                                                        } ${index === instance.mediaQueue.length - 1 ? "rounded-b-lg" : ""}`}
-                                                >
-                                                    <div>
-                                                        <p className="text-neutral-700 dark:text-neutral-200 font-bold">{message.number.slice(2)}</p>
-                                                        <p className="text-neutral-500 dark:text-neutral-400 truncate block md:hidden">
-                                                            {message.caption || <span className="italic text-xs">Sin caption</span>}
-                                                        </p>
-                                                        <p className="text-neutral-500 dark:text-neutral-400 text-sm">{message.mediatype === "image" ? "Imagen" : "Video"}</p>
-                                                    </div>
-                                                    <div className="flex items-center hidden md:flex justify-center w-full">
-                                                        <p className="text-neutral-500 dark:text-neutral-400 truncate">
-                                                            {message.caption || <span className="italic text-xs">Sin caption</span>}
-                                                        </p>
-                                                    </div>
-                                                    <div className="flex items-center w-12 h-10">
-                                                        {message.mediatype === "image" ? (
-                                                            <img
-                                                                src={message.media}
-                                                                alt="preview"
-                                                                className="w-10 h-10 object-cover rounded-full border border-gray-300 dark:border-gray-700"
-                                                            />
-                                                        ) : message.mediatype === "video" ? (
-                                                            <video
-                                                                src={message.media}
-                                                                className="w-10 h-10 object-cover rounded-full border border-gray-300 dark:border-gray-700"
-                                                                muted
-                                                                playsInline
-                                                                preload="metadata"
-                                                            >
-                                                                Your browser does not support the video tag.
-                                                            </video>
-                                                        ) : null}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center justify-center p-4 bg-neutral-100 dark:bg-neutral-900">
-                                            <p className="text-gray-500 dark:text-gray-400">No hay mensajes de media en cola.</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </motion.div>
-            ))}
+                    <div className="lg:flex flex-row gap-5">
+                        {/* Text Queue */}
+                        <div className="w-full mb-6 lg:mb-0">
+                            <h2 className="text-2xl font-bold dark:text-white mb-4 lg:text-center">Text Queue</h2>
+                            <QueueList
+                                messages={queues[activeTab].textQueue
+                                    .filter(
+                                        (msg) =>
+                                            msg.text.toLowerCase().includes(queues[activeTab].searchText.toLowerCase()) ||
+                                            msg.number.includes(queues[activeTab].searchText)
+                                    )
+                                    .slice()
+                                    .reverse()
+                                }
+                                type="text"
+                            />
+                        </div>
+                        {/* Media Queue */}
+                        <div className="w-full">
+                            <h2 className="text-2xl font-bold dark:text-white mb-4 lg:text-center">Media Queue</h2>
+                            <QueueList
+                                messages={queues[activeTab].mediaQueue
+                                    .filter(
+                                        (msg) =>
+                                            (msg.caption?.toLowerCase().includes(queues[activeTab].searchText.toLowerCase()) ?? false) ||
+                                            msg.number.includes(queues[activeTab].searchText)
+                                    )
+                                    .slice()
+                                    .reverse()
+                                }
+                                type="media"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 };

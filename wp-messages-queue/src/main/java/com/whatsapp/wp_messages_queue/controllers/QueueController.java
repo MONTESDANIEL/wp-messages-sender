@@ -3,7 +3,7 @@ package com.whatsapp.wp_messages_queue.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.whatsapp.wp_messages_queue.entities.MediaMessage;
 import com.whatsapp.wp_messages_queue.entities.TextMessage;
-import com.whatsapp.wp_messages_queue.services.QueueService;
+import com.whatsapp.wp_messages_queue.services.QueueMessagesService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,13 +11,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @RequestMapping("/messages-queue")
 public class QueueController {
 
     @Autowired
-    private QueueService queueService;
+    private QueueMessagesService queueService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -53,21 +54,14 @@ public class QueueController {
         }
     }
 
-    /**
-     * Endpoint para obtener mensajes de texto en la cola por instancia.
-     */
-    @GetMapping("/queue/text/{instance}")
-    public ResponseEntity<List<TextMessage>> getTextQueue(@PathVariable String instance) {
-        List<TextMessage> messages = queueService.getMessagesFromQueue(instance, TextMessage.class);
-        return ResponseEntity.ok(messages);
+    @GetMapping("/getTextMessages/{instance}")
+    public List<TextMessage> getTextMessages(@PathVariable String instance) {
+        return queueService.getAllTextMessages(instance);
     }
 
-    /**
-     * Endpoint para obtener mensajes multimedia en la cola por instancia.
-     */
-    @GetMapping("/queue/media/{instance}")
-    public ResponseEntity<List<MediaMessage>> getMediaQueue(@PathVariable String instance) {
-        List<MediaMessage> messages = queueService.getMessagesFromQueue(instance, MediaMessage.class);
-        return ResponseEntity.ok(messages);
+    @GetMapping("/getMediaMessages/{instance}")
+    public List<MediaMessage> getMediaMessages(@PathVariable String instance) {
+        return queueService.getAllMediaMessages(instance);
     }
+
 }

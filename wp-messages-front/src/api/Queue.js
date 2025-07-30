@@ -21,7 +21,10 @@ export const addMessagesToQueue = async (messages, instance) => {
 
 export const getTextQueueForInstance = async (instance) => {
   try {
-    const response = await axios.get(`${baseUrl}/queue/text/${instance}`, {});
+    const response = await axios.get(
+      `${baseUrl}/getTextMessages/${instance}`,
+      {}
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -30,7 +33,10 @@ export const getTextQueueForInstance = async (instance) => {
 
 export const getMediaQueueForInstance = async (instance) => {
   try {
-    const response = await axios.get(`${baseUrl}/queue/media/${instance}`, {});
+    const response = await axios.get(
+      `${baseUrl}/getMediaMessages/${instance}`,
+      {}
+    );
     return response.data;
   } catch (error) {
     throw error;
